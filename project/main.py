@@ -1,7 +1,9 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from .models import Restaurant, MenuItem
+from .models import Restaurant, MenuItem 
 from sqlalchemy import asc
 from . import db
+#added to import login 
+#from flask_login import login_user ,logout_user, login_required
 
 main = Blueprint('main', __name__)
 
@@ -107,3 +109,49 @@ def deleteMenuItem(restaurant_id,menu_id):
         return redirect(url_for('main.showMenu', restaurant_id = restaurant_id))
     else:
         return render_template('deleteMenuItem.html', item = itemToDelete)
+
+"""
+#login page
+@main.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        #check if user exists
+        user = db.session.query(User).filter_by(username=request.form['username']).first()
+        #check if password is correct
+        #if user exists and password is correct login user
+        if user and user.check_password(request.form['password']):
+            login_user(user)
+            flash('Logged in successfully.')
+            return redirect(url_for('main.showRestaurants'))
+        else:
+            #if user does not exist or password is incorrect
+            flash('Invalid username or password')
+    return render_template('login.html')
+
+@main.route('/logout')
+def logout():
+    #logout user
+    logout_user()
+    flash('Logged out successfully.')
+    return redirect(url_for('main.showRestaurants'))
+
+#register page
+@main.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        #check if user exists
+        user = db.session.query(User).filter_by(username=request.form['username']).first()
+        if user:
+            flash('User already exists')
+            return redirect(url_for('main.register'))
+        else:
+            #create new user
+            newUser = User(username=request.form['username'], email=request.form['email'])
+            newUser.set_password(request.form['password'])
+            db.session.add(newUser)
+            db.session.commit()
+
+            flash('User created successfully')
+            return redirect(url_for('main.login'))
+    return render_template('register.html')
+"""
