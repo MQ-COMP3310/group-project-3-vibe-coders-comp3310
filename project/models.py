@@ -7,7 +7,7 @@ from flask_login import UserMixin
 class Restaurant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    #added a user ID to link restaurant and user
+    #added a user ID to link restaurant and user commented cause it was causing error
     #userID = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     @property
@@ -38,7 +38,7 @@ class MenuItem(db.Model):
            'course'     : self.course,
        }
     
-    #new user model
+    #task 7 new user model commented out cause of circular import
     """'''
 class User(UserMixin,db.Model):
     #user details
@@ -57,4 +57,4 @@ class User(UserMixin,db.Model):
     #check password against hash
     def check_password(self, password):
         return check_password_hash(self.password, password)
-"""
+    """

@@ -6,6 +6,7 @@ from flask_migrate import Migrate, migrate
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
+#task 7 setting up flask login
 """'''
 # init flask-login
 login_manager = LoginManager()
@@ -24,7 +25,7 @@ def create_app():
 
     app.config['SECRET_KEY'] = 'secret-key-do-not-reveal'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///restaurantmenu.db'
-    #app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
   
