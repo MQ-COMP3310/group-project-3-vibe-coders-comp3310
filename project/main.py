@@ -3,7 +3,8 @@ from .models import Restaurant, MenuItem
 from sqlalchemy import asc
 from . import db
 #added to import login 
-#from flask_login import login_user ,logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
+from .models import User, Restaurant, MenuItem
 
 main = Blueprint('main', __name__)
 
@@ -111,7 +112,7 @@ def deleteMenuItem(restaurant_id,menu_id):
         return render_template('deleteMenuItem.html', item = itemToDelete)
     
 #Task 7added login logout and register routes
-"""'''
+
 #login page
 @main.route('/login', methods=['GET', 'POST'])
 def login():
@@ -155,4 +156,3 @@ def register():
             flash('User created successfully')
             return redirect(url_for('main.login'))
     return render_template('register.html')
-"""

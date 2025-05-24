@@ -1,7 +1,17 @@
-from project import db, create_app, models
-from project.models import Restaurant, MenuItem
+from project import create_app
+from project.models import User, Restaurant, MenuItem
+from project import db
+
 
 def populate_db():
+  # Create admin user if not exists
+    if not User.query.filter_by(username='admin').first():
+        admin = User(username='admin', email='admin@example.com')
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
+
+
     #Menu for UrbanBurger
     restaurant1 = Restaurant(name = "Urban Burger")
 

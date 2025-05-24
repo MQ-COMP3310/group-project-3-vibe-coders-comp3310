@@ -1,11 +1,18 @@
 <div class="row top-menu">
-	<div class="col-md-6">
-		<a href="{{url_for('main.showRestaurants')}}">
-			<span class="glyphicon glyphicon-home" aria-hidden="true"></span>Show All Restaurants
-		</a>
-	</div>
-	<div class="col-md-6 text-right">
-					<p>Login Link will go Here </p>
-		
-	</div>
+    <div class="col-md-6">
+        <a href="{{url_for('main.showRestaurants')}}">
+            <span class="glyphicon glyphicon-home" aria-hidden="true"></span>Show All Restaurants
+        </a>
+    </div>
+    <div class="col-md-6 text-right">
+        {% if current_user.is_authenticated %}
+            <a href="{{url_for('main.logout')}}">
+                <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span> Logout
+            </a>
+        {% else %}
+            <a href="{{url_for('main.login')}}">
+                <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span> Login
+            </a>
+        {% endif %}
+    </div>
 </div>
