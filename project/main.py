@@ -113,46 +113,69 @@ def deleteMenuItem(restaurant_id,menu_id):
     
 #Task 7added login logout and register routes
 
-#login page
+#login route with authentication checks
 @main.route('/login', methods=['GET', 'POST'])
 def login():
+    #Checks if the user is already authenticated
+    if current_user.is_authenticated:
+        return redirect(url_for('main.showRestaurants'))
+        
     if request.method == 'POST':
-        #check if user exists
-        user = db.session.query(User).filter_by(username=request.form['username']).first()
-        #check if password is correct
-        #if user exists and password is correct login user
-        if user and user.check_password(request.form['password']):
+        #should add rate limiting to prevent brute force attacks
+        username = request.form['username']
+        password = request.form['password']
+        #parameterized query to prevent SQL injection
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.check_password(password):
+            #session management with flask login
             login_user(user)
-            flash('Logged in successfully.')
-            return redirect(url_for('main.showRestaurants'))
+            flash('Logged in successfully!', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('main.showRestaurants'))
         else:
-            #if user does not exist or password is incorrect
-            flash('Invalid username or password')
+            #generic error message to prevent username enumeration
+            flash('Invalid username or password', 'danger')
+    
     return render_template('login.html')
 
+#logout route
 @main.route('/logout')
+@login_required
 def logout():
-    #logout user
+    #proper session termination
     logout_user()
-    flash('Logged out successfully.')
+    flash('You have been logged out.', 'info')
     return redirect(url_for('main.showRestaurants'))
 
-#register page
+#Registration route with input validation
 @main.route('/register', methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.showRestaurants'))
+        
     if request.method == 'POST':
-        #check if user exists
-        user = db.session.query(User).filter_by(username=request.form['username']).first()
-        if user:
-            flash('User already exists')
+        #should add input sanitization hfor email and password
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        
+        #check for existing to prevent duplicates
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken', 'danger')
             return redirect(url_for('main.register'))
-        else:
-            #create new user
-            newUser = User(username=request.form['username'], email=request.form['email'])
-            newUser.set_password(request.form['password'])
-            db.session.add(newUser)
-            db.session.commit()
-
-            flash('User created successfully')
-            return redirect(url_for('main.login'))
+            
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered', 'danger')
+            return redirect(url_for('main.register'))
+        
+        #Password hasing done in User model
+        user = User(username=username, email=email)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Registration successful! Please login.', 'success')
+        return redirect(url_for('main.login'))
+    
     return render_template('register.html')

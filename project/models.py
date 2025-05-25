@@ -7,8 +7,7 @@ from flask_login import UserMixin
 class Restaurant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    #added a user ID to link restaurant and user commented cause it was causing error
-    userID = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     @property
     def serialize(self):
@@ -38,8 +37,7 @@ class MenuItem(db.Model):
            'course'     : self.course,
        }
     
-    #task 7 new user model commented out cause of circular import
-
+#Task 7
 class User(UserMixin,db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -50,7 +48,20 @@ class User(UserMixin,db.Model):
     restaurants = db.relationship('Restaurant', backref='owner', lazy=True)
     
     def set_password(self, password):
+        #Uses werkzeug's generate_password_hash
         self.password_hash = generate_password_hash(password)
         
     def check_password(self, password):
+        #Uses constant-time comparison to prevent timing attacks
         return check_password_hash(self.password_hash, password)
+
+#Route protected with @login_required
+@main.route('/restaurant/new/', methods=['GET','POST'])
+@login_required
+def newRestaurant():
+    if request.method == 'POST':
+        #Associates restaurant with current user
+        newRestaurant = Restaurant(
+            name=request.form['name'],
+            user_id=current_user.id
+        )

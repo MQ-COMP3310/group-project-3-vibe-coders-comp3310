@@ -6,13 +6,16 @@ from flask_migrate import Migrate
 # Initialize extensions
 db = SQLAlchemy()
 login_manager = LoginManager()
-migrate = Migrate()  # Create the instance here
+migrate = Migrate()  
 
+#Task 7 - sets login view to prevent unauthorized access
 login_manager.login_view = 'main.login'
 
+#user loader for session management
 @login_manager.user_loader
 def load_user(user_id):
     from .models import User
+    #parameterized query
     return User.query.get(int(user_id))
 
 def create_app():
