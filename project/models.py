@@ -7,7 +7,7 @@ from flask_login import UserMixin
 class Restaurant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     @property
     def serialize(self):
@@ -55,13 +55,3 @@ class User(UserMixin,db.Model):
         #Uses constant-time comparison to prevent timing attacks
         return check_password_hash(self.password_hash, password)
 
-#Route protected with @login_required
-@main.route('/restaurant/new/', methods=['GET','POST'])
-@login_required
-def newRestaurant():
-    if request.method == 'POST':
-        #Associates restaurant with current user
-        newRestaurant = Restaurant(
-            name=request.form['name'],
-            user_id=current_user.id
-        )
