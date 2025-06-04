@@ -44,6 +44,10 @@ class User(UserMixin,db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
+
+    #task 9 additional feature 1
+    security_question = db.Column(db.String(200), nullable=False) 
+    security_answer_hash = db.Column(db.String(128), nullable=False)
     
     restaurants = db.relationship('Restaurant', backref='owner', lazy=True)
     
@@ -54,4 +58,13 @@ class User(UserMixin,db.Model):
     def check_password(self, password):
         #Uses constant-time comparison to prevent timing attacks
         return check_password_hash(self.password_hash, password)
+    
+    #task 9 additional feature 1
+    def set_security_answer(self, answer):
+        #security answers are hased like passwords
+        self.security_answer_hash = generate_password_hash(answer.lower())  
+    
+    def check_security_answer(self, answer):
+        #Uses constant-time comparison to prevent timing attacks
+        return check_password_hash(self.security_answer_hash, answer.lower())
 

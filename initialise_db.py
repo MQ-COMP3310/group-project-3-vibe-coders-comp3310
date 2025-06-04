@@ -6,8 +6,13 @@ from project import db
 def populate_db():
   # Create admin user if not exists
     if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', email='admin@example.com')
+        admin = User(
+            username='admin', 
+            email='admin@example.com',
+            security_question="What city were you born in?",  # Add security question
+        )
         admin.set_password('admin123')
+        admin.set_security_answer('example')  # Set security answer
         db.session.add(admin)
         db.session.commit()
 

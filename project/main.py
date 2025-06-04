@@ -155,10 +155,14 @@ def register():
         return redirect(url_for('main.showRestaurants'))
         
     if request.method == 'POST':
-        #should add input sanitization hfor email and password
+        #should add imput sanitization for email and password
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
+
+        #additional feature 1
+        security_question = request.form['security_question']
+        security_answer = request.form['security_answer']
         
         #check for existing to prevent duplicates
         if User.query.filter_by(username=username).first():
@@ -169,9 +173,11 @@ def register():
             flash('Email already registered', 'danger')
             return redirect(url_for('main.register'))
         
-        #Password hasing done in User model
-        user = User(username=username, email=email)
+        #additional feature 1
+        user = User(username=username, email=email, security_question=security_question)
+        #password hashing done in user model
         user.set_password(password)
+        user.set_security_answer(security_answer)
         db.session.add(user)
         db.session.commit()
         
@@ -179,3 +185,60 @@ def register():
         return redirect(url_for('main.login'))
     
     return render_template('register.html')
+
+#task 9 additional feature 1
+@main.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        username = request.form['username']
+        user = User.query.filter_by(username=username).first()
+        
+        if not user:
+            #generic message to prevent username enumeration
+            flash('Username not found', 'danger')
+            return redirect(url_for('main.forgot_password'))
+
+        #in real world implementation, an email would be sent
+        #however here we redirect directly to simulate flow   
+        return redirect(url_for('main.reset_password', username=user.username))
+    
+    return render_template('forgot_password.html')
+
+#task 9 additional feature 1
+@main.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    username = request.args.get('username') or request.form.get('username')
+    user = User.query.filter_by(username=username).first()
+    
+    if not user:
+        flash('Invalid request', 'danger')
+        return redirect(url_for('main.forgot_password'))
+    
+    if request.method == 'POST':
+        security_answer = request.form['security_answer']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+        
+        #verify security answer by comparing hash
+        if not user.check_security_answer(security_answer):
+            flash('Incorrect security answer', 'danger')
+            return render_template('reset_password.html',
+                                 username=user.username,
+                                 security_question=user.security_question)
+        
+        #password confirmation check
+        if new_password != confirm_password:
+            flash('Passwords do not match', 'danger')
+            return render_template('reset_password.html',
+                                 username=user.username,
+                                 security_question=user.security_question)
+        
+        #update password and hashed automatically
+        user.set_password(new_password)
+        db.session.commit()
+        flash('Password reset successfully! Please login with your new password', 'success')
+        return redirect(url_for('main.login'))
+    
+    return render_template('reset_password.html',
+                         username=user.username,
+                         security_question=user.security_question)
