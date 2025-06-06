@@ -214,6 +214,7 @@ def reset_password():
         flash('Invalid request', 'danger')
         return redirect(url_for('main.forgot_password'))
     
+    #should add limit rate limiting here to prevent automation
     if request.method == 'POST':
         security_answer = request.form['security_answer']
         new_password = request.form['new_password']
