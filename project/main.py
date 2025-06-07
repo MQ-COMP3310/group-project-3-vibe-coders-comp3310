@@ -5,6 +5,10 @@ from . import db
 #added to import login 
 from flask_login import login_user, logout_user, login_required, current_user
 from .models import User, Restaurant, MenuItem
+#for logging
+from .security import log_activity, get_recent_activities, check_login_anomalies
+from datetime import datetime, timedelta
+from .models import ActivityLog
 
 main = Blueprint('main', __name__)
 
@@ -42,9 +46,11 @@ def editRestaurant(restaurant_id):
 
 #Delete a restaurant
 @main.route('/restaurant/<int:restaurant_id>/delete/', methods = ['GET','POST'])
+@login_required
 def deleteRestaurant(restaurant_id):
   restaurantToDelete = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
   if request.method == 'POST':
+    log_activity(current_user.id, 'delete_restaurant', f'Deleted restaurant ID {restaurant_id} ({restaurantToDelete.name})')
     db.session.delete(restaurantToDelete)
     flash('%s Successfully Deleted' % restaurantToDelete.name)
     db.session.commit()
@@ -130,10 +136,14 @@ def login():
         if user and user.check_password(password):
             #session management with flask login
             login_user(user)
+            #additional feature 2 - logging when a user logs in
+            log_activity(user.id, 'login_success', f'User logged in from {request.remote_addr}')
             flash('Logged in successfully!', 'success')
             next_page = request.args.get('next')
             return redirect(next_page or url_for('main.showRestaurants'))
         else:
+            #logs when a user fails to log in, saves username and ip
+            log_activity(None, 'login_failed', f'username:{username}, ip:{request.remote_addr}')
             #generic error message to prevent username enumeration
             flash('Invalid username or password', 'danger')
     
@@ -143,6 +153,8 @@ def login():
 @main.route('/logout')
 @login_required
 def logout():
+    #log when a user logs out
+    log_activity(current_user.id, 'logout')
     #proper session termination
     logout_user()
     flash('You have been logged out.', 'info')
@@ -243,3 +255,29 @@ def reset_password():
     return render_template('reset_password.html',
                          username=user.username,
                          security_question=user.security_question)
+
+#new route to access the log
+@main.route('/activity-log')
+@login_required
+def activity_log():
+    # Only allow admin to view all logs to enforce roll based access control
+    if current_user.username != 'admin':
+        logs = get_recent_activities(current_user.id)
+    else:
+        logs = get_recent_activities()
+    return render_template('activity_log.html', logs=logs)
+
+@main.route('/security-alerts')
+@login_required
+def security_alerts():
+    if current_user.username != 'admin':
+        flash('Access denied: Admins only.', 'danger')
+        return redirect(url_for('main.showRestaurants'))
+    
+    # Get recent suspicious activities (customize as needed)
+    suspicious_activities = ActivityLog.query.filter(
+        ActivityLog.activity_type.in_(['login_failed', 'unauthorized_access']),
+        ActivityLog.created_at >= datetime.utcnow() - timedelta(hours=24)
+    ).order_by(ActivityLog.created_at.desc()).limit(50).all()
+    
+    return render_template('anomalies_detected.html', logs=suspicious_activities)

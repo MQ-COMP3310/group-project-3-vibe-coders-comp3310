@@ -37,6 +37,17 @@ class MenuItem(db.Model):
            'course'     : self.course,
        }
     
+class ActivityLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    activity_type = db.Column(db.String(50), nullable=False)  # e.g., 'login', 'logout', 'delete_restaurant'
+    ip_address = db.Column(db.String(50), nullable=False)
+    user_agent = db.Column(db.String(200))
+    details = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    user = db.relationship('User', backref='activities')
+
 #Task 7
 class User(UserMixin,db.Model):
     __tablename__ = 'user'
@@ -67,4 +78,7 @@ class User(UserMixin,db.Model):
     def check_security_answer(self, answer):
         #Uses constant-time comparison to prevent timing attacks
         return check_password_hash(self.security_answer_hash, answer.lower())
-
+    
+    #prevent injection using parameterized queries
+    def get_activities(self, limit=20):
+        return ActivityLog.query.filter_by(user_id=self.id).order_by(ActivityLog.created_at.desc()).limit(limit).all()
