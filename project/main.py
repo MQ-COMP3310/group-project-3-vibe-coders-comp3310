@@ -50,6 +50,7 @@ def editRestaurant(restaurant_id):
 def deleteRestaurant(restaurant_id):
   restaurantToDelete = db.session.query(Restaurant).filter_by(id = restaurant_id).one()
   if request.method == 'POST':
+    #log when a restuarant is deleted
     log_activity(current_user.id, 'delete_restaurant', f'Deleted restaurant ID {restaurant_id} ({restaurantToDelete.name})')
     db.session.delete(restaurantToDelete)
     flash('%s Successfully Deleted' % restaurantToDelete.name)
@@ -260,7 +261,7 @@ def reset_password():
 @main.route('/activity-log')
 @login_required
 def activity_log():
-    # Only allow admin to view all logs to enforce roll based access control
+    #only allow admin to view all logs to enforce roll based access control
     if current_user.username != 'admin':
         logs = get_recent_activities(current_user.id)
     else:
@@ -274,7 +275,7 @@ def security_alerts():
         flash('Access denied: Admins only.', 'danger')
         return redirect(url_for('main.showRestaurants'))
     
-    # Get recent suspicious activities (customize as needed)
+    #get recent suspicious activities
     suspicious_activities = ActivityLog.query.filter(
         ActivityLog.activity_type.in_(['login_failed', 'unauthorized_access']),
         ActivityLog.created_at >= datetime.utcnow() - timedelta(hours=24)

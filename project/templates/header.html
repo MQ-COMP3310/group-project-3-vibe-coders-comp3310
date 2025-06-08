@@ -4,7 +4,7 @@
             <span class="glyphicon glyphicon-home" aria-hidden="true"></span>Show All Restaurants
         </a>
         
-        <!-- ADMIN-ONLY LINKS (left side) -->
+        <!-- admin only access -->
         {% if current_user.is_authenticated and current_user.username == 'admin' %}
             <a href="{{url_for('main.activity_log')}}" class="ml-3">
                 <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Activity Log

@@ -40,7 +40,7 @@ class MenuItem(db.Model):
 class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    activity_type = db.Column(db.String(50), nullable=False)  # e.g., 'login', 'logout', 'delete_restaurant'
+    activity_type = db.Column(db.String(50), nullable=False)  #'login', 'logout', 'delete_restaurant'
     ip_address = db.Column(db.String(50), nullable=False)
     user_agent = db.Column(db.String(200))
     details = db.Column(db.Text)
